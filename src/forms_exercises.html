@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        #suggestions div {
+            background-color: lightgrey;
+            width: 150px;
+            border: solid 1px darkslategrey;
+        }
+        #suggestions div:empty{
+            border: none;
+        }
+        #suggestions div:hover {
+            background-color: burlywood;
+        }
+    </style>
+</head>
+<body>
+<textarea id="code">return "hi";</textarea>
+<button id="button">Поехали</button>
+<pre id="output"></pre>
+
+<script>
+    var text2 = document.querySelector("#code");
+    var button = document.querySelector("#button");
+    var output = document.querySelector("#output");
+       button.addEventListener("click", function () {
+       output.textContent = String(new Function(text2.value)());
+    });
+</script>
+<input type="text" id="field">
+<div id="suggestions" style="cursor: pointer"><div></div></div>
+
+<script>
+    //строит массив из имен глобальных переменных,
+    //типа 'alert', 'document', 'scrollTo'
+    var terms = []
+    for (var name in window)
+        terms.push(name);
+    var text = document.querySelector("#field");
+    var suggestions = document.querySelector("#suggestions");
+    text.addEventListener("keyup", function () {
+        var result = terms.filter(function (elem) {
+           if (elem.indexOf(text.value) == 0 && text.value.length != 0){
+              return elem;
+           }
+        });
+        var div = document.createElement("div");
+        result.forEach(function (elem) {
+            var option = document.createElement("div");
+            option.innerText = elem;
+            option.addEventListener("click", function () {
+                text.value = option.textContent;
+                suggestions.replaceChild(document.createElement("div"), suggestions.firstChild);
+            });
+            div.appendChild(option);
+        });
+        suggestions.replaceChild(div, suggestions.firstChild);
+        console.log(result);
+    });
+</script>
+
+</body>
+</html>

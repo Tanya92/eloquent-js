@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+
+
+
+    </style>
+</head>
+<body>
+<div id="grid"></div>
+
+<script>
+    function Game(wrapper, size) {
+        this.wrapper = wrapper;
+        this.size = size;
+    }
+    Game.prototype.start = function () {
+        this.createGrid(this.size, this.size);
+        var button = document.createElement("button");
+        var autoRunButton = document.createElement("button");
+        var stopButton = document.createElement("button");
+        this.wrapper.appendChild(button);
+        this.wrapper.appendChild(autoRunButton);
+        this.wrapper.appendChild(stopButton);
+        this.wrapper.style.width = (this.size * 25) + "px";
+        button.innerText = "Next generation";
+        autoRunButton.innerText = "Auto run";
+        stopButton.innerText = "Stop";
+        button.addEventListener("click", () => this.nextGeneration());
+        autoRunButton.addEventListener("click", () => this.autoRun());
+        stopButton.addEventListener("click", () => this.stop());
+    };
+    Game.prototype.autoRun = function () {
+        if (!this.intervalId) {
+            this.nextGeneration();
+            this.intervalId = setInterval(() => this.nextGeneration(), 500);
+        }
+    };
+    Game.prototype.stop = function () {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+    };
+    Game.prototype.createGrid = function (m, n) {
+        var gridArray = [];
+        for(var y = 0; y < m; y++){
+            var gridLine = [];
+            for(var x = 0; x < n; x++){
+                var checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.style.width = 10 + "px";
+                this.wrapper.appendChild(checkbox);
+                if (Math.random() > 0.8)
+                    checkbox.checked = true;
+                gridLine.push(checkbox);
+            }
+            gridArray.push(gridLine);
+        }
+        this.grid = gridArray;
+    };
+    Game.prototype.neighbors = function (i, j) {
+            var neighbors = [];
+            var vectors = [
+                {i: -1, j: -1},
+                {i: -1, j: 0},
+                {i: -1, j: 1},
+                {i: 0, j: -1},
+                {i: 0, j: 1},
+                {i: +1, j: -1},
+                {i: +1, j: 0},
+                {i: +1, j: 1},
+            ];
+            for (let z = 0;z < vectors.length; z++){
+                var vector = vectors[z];
+                var currentI = i + vector.i;
+                var currentJ = j + vector.j;
+                if (currentI == -1)
+                    currentI = this.grid.length - 1;
+                if (currentJ == -1)
+                    currentJ = this.grid.length - 1;
+                if (currentI == this.grid.length)
+                    currentI = 0;
+                if (currentJ == this.grid.length)
+                    currentJ = 0;
+                neighbors.push(this.grid[currentI][currentJ]);
+            }
+            return neighbors;
+    };
+    Game.prototype.nextGeneration = function () {
+        var nextGenerationArray = [];
+        for (var y = 0; y < this.grid.length; y++) {
+            nextGenerationArray.push([]);
+            for (var x = 0; x < this.grid[y].length; x++) {
+                var currentNeighbors =  this.neighbors(y, x);
+                var neighborsChecked = 0;
+                for (let i = 0; i < currentNeighbors.length; i++) {
+                    if (currentNeighbors[i].checked == true)
+                        neighborsChecked++;
+                }
+                if (this.grid[y][x].checked) {
+                    if (neighborsChecked < 2 || neighborsChecked > 3) {
+                        nextGenerationArray[y][x] = false;
+                    }
+                    if (neighborsChecked == 2 || neighborsChecked == 3){
+                        nextGenerationArray[y][x] = true;
+                    }
+                } else if (neighborsChecked == 3) {
+                    nextGenerationArray[y][x] = true;
+                } else {
+                    nextGenerationArray[y][x] = this.grid[y][x].checked;
+                }
+            }
+        }
+        for (var y = 0; y < nextGenerationArray.length; y++){
+            for (var x = 0; x < nextGenerationArray[y].length; x++){
+                this.grid[y][x].checked = nextGenerationArray[y][x];
+            }
+        }
+    };
+    var game = new Game(document.querySelector("#grid"), 20);
+    game.start();
+</script>
+</body>
+</html>

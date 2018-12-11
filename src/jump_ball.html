@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<script src="promises.js"></script>
+<!--
+</script><script src="XMLHttpRequest.js"></script>
+<script>
+    function showMessage(msg) {
+        var elt = document.createElement("div");
+        elt.textContent = msg;
+        return document.body.appendChild(elt);
+    }
+
+    var loading = showMessage("Загрузка...");
+    getJSON("bert.json").then(function (bert) {
+        return getJSON(bert.spouse);
+    }).then(function (spouse) {
+        return getJSON(spouse.mother);
+    }).then(function (mother) {
+        showMessage("Имя - " + mother.name);
+    }).catch(function (error) {
+        showMessage(String(error));
+    }).then(function () {
+        document.body.removeChild(loading);
+    });
+</script>
+-->
+
+<!--
+<canvas width="400" height="400"></canvas>
+<script>
+    var cx = document.querySelector("canvas").getContext("2d");
+    var lastTime = null;
+
+    cx.fillStyle = "red";
+    var x = 100, y = 300;
+    var speedY = 90, speedX = 150, radius = 10;
+   /* var directions = {
+        "up": -4,
+        "down": 4
+    };
+    var direction = "down";
+    */
+    function frame(time) {
+        if (lastTime != null)
+            updateAnimation(Math.min(100, time - lastTime) / 1000);
+        lastTime = time;
+        requestAnimationFrame(frame);
+
+        function updateAnimation(step) {
+            cx.clearRect(0, 0, 400, 400);
+            cx.strokeRect(25, 25, 350, 350);
+            x += step * speedX;
+            y += step * speedY;
+            if (x < 25 + radius || x > 375 - radius)
+                speedX = -speedX;
+            if (y < 25 + radius || y > 375 - radius)
+                speedY = -speedY;
+            cx.fillStyle = "red";
+            cx.beginPath();
+            cx.arc(x, y, radius, 0, 7);
+            cx.fill();
+            /*
+            if (y == 388)
+                direction = "up";
+            if (y == 20)
+                direction = "down";
+            y += directions[direction];
+            cx.beginPath();
+            cx.arc(195, y, 10, 0, 2 * Math.PI);
+            cx.fill();
+            */
+        }
+
+    }
+    frame(5);
+-->
+</body>
+</html>

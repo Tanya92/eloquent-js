@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<canvas width="1000" height="700"></canvas>
+<script>
+    var cx = document.querySelector("canvas").getContext("2d");
+    function trapecia(posX, posY, topLine, angle, h) {
+        var alpha = angle - Math.PI / 2;
+        cx.beginPath();
+        if (Math.tan(alpha) >= 0) {
+            cx.moveTo(posX, posY);
+            cx.lineTo(posX + topLine, posY);
+            cx.lineTo(posX + topLine + h * Math.tan(alpha), posY + h);
+            cx.lineTo(posX - h * Math.tan(alpha), posY + h);
+            cx.lineTo(posX, posY);
+            cx.stroke();
+         } else {
+            var img = document.createElement("img");
+            img.src = "http://eloquentjavascript.net/img/hat.png";
+            img.addEventListener("load", function () {
+                    cx.drawImage(img, posX, posY);
+            });
+        }
+    }
+    function romb(posX, posY, line) {
+        cx.beginPath();
+        cx.moveTo(posX, posY);
+        cx.lineTo(posX + line * Math.cos(Math.PI / 4), posY + line * Math.cos(Math.PI / 4));
+        cx.lineTo(posX, posY + Math.sqrt(2) * line);
+        cx.lineTo(posX - line * Math.cos(Math.PI / 4),  posY + line * Math.cos(Math.PI / 4));
+        cx.lineTo(posX, posY);
+        cx.fillStyle = "red";
+        cx.fill();
+    }
+    function triangle(posX, posY, line, angle, n) {
+       var count = Math.trunc(n / 2);
+       cx.beginPath();
+       cx.moveTo(posX, posY);
+       var base = Math.sqrt(2 * (1 - Math.cos(angle)));
+       if (angle < Math.PI && angle > 0) {
+           function twice(posX, posY) {
+               cx.lineTo(posX + Math.cos(angle / 2) * line, posY + base / 2 * line);
+               cx.lineTo(posX, posY + base * line);
+           }
+           for (let i = 0; i < count; i++){
+               twice(posX, posY);
+               posY += base * line;
+           }
+           if (n % 2 != 0)
+               cx.lineTo(posX + Math.cos(angle / 2) * line, posY + base / 2 * line);
+           cx.stroke();
+       } else
+           alert("Triangle doesn't exist!!!")
+    }
+    function circle(centerX, centerY, r, n) {
+        cx.beginPath();
+        for (let i = 0 ; i < n - 1; i ++) {
+            if (i % 2 == 0)
+                cx.arc(centerX, centerY,  (i + 1) * r, i * Math.PI, (i + 1) * Math.PI);
+            else
+                cx.arc(centerX + r, centerY,  (i + 1) * r, i * Math.PI, (i + 1) * Math.PI);
+        }
+        cx.arc(centerX, centerY,  n * r, 0, Math.PI / 4);
+        cx.stroke();
+    }
+    function star(centerX, centerY,radius) {
+        cx.beginPath();
+        cx.moveTo(centerX + radius, centerY);
+        for (let i = 0; i <= 2 * Math.PI; i += Math.PI / 4){
+            cx.quadraticCurveTo(centerX, centerY, centerX + radius * Math.cos(i), centerY + radius* Math.sin(i));
+        }
+        cx.fillStyle = "orange";
+        cx.fill();
+
+
+    }
+    star(600, 100, 80);
+    circle(450, 100, 10,7);
+    triangle(340, 50, 50, Math.PI / 8, 11);
+    romb(280, 50, 80);
+    trapecia(100,50, 60, 2 * Math.PI / 3, 85);
+
+</script>
+</body>
+</html>

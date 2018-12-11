@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My first table</title>
+</head>
+<body>
+<script src="Mountains.js"></script>
+
+<style>
+    /* Defines a cleaner look for tables */
+    table  { border-collapse: collapse; }
+    td, th { border: 1px solid black; padding: 3px 8px; }
+    th     { text-align: left; }
+</style>
+
+<script>
+    function buildTable(data) {
+        var names = Object.keys(data[0]);
+        var myTable = document.createElement("table");
+        var tr = document.createElement("tr");
+        myTable.appendChild(tr);
+        for (let i = 0; i < names.length; i++){
+            var th = document.createElement("th");
+            var textNode = document.createTextNode(names[i]);
+            th.appendChild(textNode);
+            tr.appendChild(th)
+        }
+        for (let i = 0; i < data.length; i++) {
+            tr = document.createElement("tr");
+            for (let j = 0; j < names.length; j++) {
+                var td = document.createElement("td");
+                var content = data[i][names[j]];
+                if (typeof content == "number") {
+                    td.style.textAlign = "right";
+                }
+                textNode = document.createTextNode(content);
+                td.appendChild(textNode);
+                tr.appendChild(td);
+            }
+            myTable.appendChild(tr);
+        }
+        return myTable;
+    }
+
+    document.body.appendChild(buildTable(MOUNTAINS));
+</script>
+</body>
+</html>

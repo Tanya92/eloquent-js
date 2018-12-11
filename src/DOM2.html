@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1>Заголовок с элементом <span>span</span> внутри.</h1>
+<p>Параграф с <span>раз</span>, <span>два</span> элементами spans.</p>
+
+<script>
+    function byTagName(node, tagName) {
+        var result = [];
+        var tagNameToUp = tagName.toUpperCase();
+        for (let i = 0; i < node.childNodes.length; i++){
+           if (node.childNodes[i].tagName === tagNameToUp)
+               result.push(node.childNodes[i]);
+           result = result.concat(byTagName(node.childNodes[i], tagName));
+        }
+       return result;
+    }
+    console.log(byTagName(document.body, "h1").length);
+    // → 1
+    console.log(byTagName(document.body, "span").length);
+    // → 3
+    var para = document.querySelector("p");
+    console.log(byTagName(para, "span").length);
+    // → 2
+</script>
+</body>
+</html>

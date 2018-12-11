@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<!--
+<p> Normal HTML here.</p>
+<svg xmlns="http://www.w3.org/2000/svg">
+    <circle r="50" cx="50" cy="50" fill="red"/>
+    <rect x="120" y="5" width="90" height="90" stroke="blue" fill="none"/>
+</svg>
+<script src="canvas_exampleJS.js"></script>
+
+<p> Before canvas.</p>
+<canvas width="120" height="60"></canvas>
+<p>After canvas.</p>
+<script>
+
+    var canvas = document.querySelector("canvas");
+    var context = canvas.getContext("2d");
+    context.fillStyle = "red";
+    context.fillRect(10, 10, 100, 50);
+</script>
+
+<canvas></canvas>
+<script>
+    var cx = document.querySelector("canvas").getContext("2d");
+    cx.strokeStyle = "blue";
+    cx.strokeRect(5, 5, 50, 50);
+    cx.lineWidth = 5;
+    cx.strokeRect(135, 5, 50, 50);
+</script>
+
+<canvas></canvas>
+<script>
+    var cx = document.querySelector("canvas").getContext("2d");
+    cx.beginPath();
+    for (var y = 10; y < 100; y+= 10){
+        cx.moveTo(10, y);
+        cx.lineTo(90, y);
+    }
+    cx.stroke();
+</script>
+
+<canvas></canvas>
+<script>
+    var cx = document.querySelector("canvas").getContext("2d");
+    cx.beginPath();
+    cx.moveTo(50, 10);
+    cx.lineTo(10, 70);
+    cx.lineTo(90, 70);
+    cx.closePath();
+    cx.stroke();
+</script>
+-->
+<!--
+<canvas></canvas>
+<script>
+    var cx = document.querySelector("canvas").getContext("2d");
+    cx.beginPath();
+    cx.moveTo(10, 90);
+    //control = (60, 10) goal = (90,90);
+    cx.quadraticCurveTo(60, 10, 90, 90);
+    cx.lineTo(60,10);
+    cx.closePath();
+    cx.stroke();
+</script>
+
+<canvas></canvas>
+<script>
+    var cx = document.querySelector("canvas").getContext("2d");
+    cx.beginPath();
+    cx.moveTo(10, 90);
+    //control1 = (10, 10) control2 = (90, 10) goal = (50,90);
+    cx.bezierCurveTo(10, 10, 90, 10, 50, 90);
+    cx.lineTo(90, 10);
+    cx.lineTo(10, 10);
+    cx.closePath();
+    cx.stroke();
+    </script>
+
+<canvas></canvas>
+<script>
+    var cx = document.querySelector("canvas").getContext("2d");
+    cx.beginPath();
+    cx.moveTo(10, 10);
+    //control =(90,10) goal =(90,90) radius =20
+    cx.arcTo(90, 10, 90, 90, 20);
+    cx.moveTo(10, 10);
+    //control =(90,10) goal =(90,90) radius =80
+    cx.arcTo(90, 10, 90, 90, 80);
+    cx.stroke();
+    </script>
+
+<canvas></canvas>
+<script>
+    var cx = document.querySelector("canvas").getContext("2d");
+    cx.beginPath();
+    //center = (50,50) radius=40 angle =0 to 7
+    cx.arc(50, 50, 40, 0, 2 * Math.PI);
+    //center= (150, 50) radius = 40 angle = 0 to pi/2
+    cx.arc(150, 50, 40, 0, 0.5 * Math.PI);
+    cx.stroke();
+    </script>
+-->
+<!--
+<canvas width="600" height="400"></canvas>
+<script>
+    var results = [
+        {name: "Удовлетворен", count: 1043, color: "lightblue"},
+        {name: "Нейтральное", count: 563, color: "lightgreen"},
+        {name: "Не удовлетворен", count: 210, color: "pink"},
+        {name: "Без комментариев", count: 175, color: "silver"}
+    ];
+    var cx = document.querySelector("canvas").getContext("2d");
+    var total = results.reduce(function(sum, choice) {
+        return sum + choice.count;
+    }, 0);
+
+    var currentAngle = -0.5 * Math.PI;
+    var centerX = 300, centerY = 150;
+
+    results.forEach(function(result) {
+        var sliceAngle = (result.count / total) * 2 * Math.PI;
+        cx.beginPath();
+        cx.arc(centerX, centerY, 100,
+            currentAngle, currentAngle + sliceAngle);
+
+        var middleAngle = currentAngle + 0.5 * sliceAngle;
+        var textX = Math.cos(middleAngle) * 120 + centerX;
+        var textY = Math.sin(middleAngle) * 120 + centerY;
+        cx.textBaseLine = "middle";
+        if (Math.cos(middleAngle) > 0)
+            cx.textAlign = "left";
+        else
+            cx.textAlign = "right";
+        cx.font = "15px sans-serif";
+        cx.fillStyle = "black";
+        cx.fillText(result.name, textX, textY);
+
+        currentAngle += sliceAngle;
+        cx.lineTo(centerX, centerY);
+        cx.fillStyle = result.color;
+        cx.fill();
+    });
+</script>
+-->
+<!--
+<canvas width="800" height="500"></canvas>
+<script>
+    var results = [
+        {name: "Удовлетворен", count: 1043, color: "lightblue"},
+        {name: "Нейтральное", count: 563, color: "lightgreen"},
+        {name: "Не удовлетворен", count: 210, color: "pink"},
+        {name: "Без комментариев", count: 175, color: "silver"}
+    ];
+    var cx = document.querySelector("canvas").getContext("2d");
+    var total = results.reduce(function (sum, choice) {
+        return sum + choice.count;
+    }, 0);
+    //start at the top
+    var currentAngle = -0.5 * Math.PI;
+    var centerX = 300, centerY = 200;
+    //my code for text
+    results.forEach(function (result) {
+        var sliceAngle = (result.count / total) * 2 * Math.PI;
+        cx.beginPath();
+        //radius = 100
+        //from current angle, clockwise by slice's angle
+        cx.arc(centerX, centerY, 150, currentAngle, currentAngle + sliceAngle);
+        cx.lineTo(centerX, centerY);
+        cx.fillStyle = result.color;
+        cx.fill();
+        currentAngle += sliceAngle;
+    });
+    cx.strokeRect(500, 100, 300, 150);
+    var rectY = 105;
+    results.forEach(function (result) {
+        cx.fillStyle = result.color;
+        cx.fillRect(510, rectY, 20, 20);
+        rectY += 40;
+        var sliceAngle = (result.count / total) * 2 * Math.PI;
+        cx.font = "14px Georgia";
+        cx.fillStyle = "black";
+        cx.fillText(result.name, 540, rectY - 20);
+        currentAngle += sliceAngle;
+
+    });
+</script>
+-->
+<!--
+<canvas width="350" height="100"></canvas>
+<script>
+    var cx = document.querySelector("canvas").getContext("2d");
+    cx.font = "18px Georgia";
+    cx.fillStyle = "fuchsia";
+    cx.textAlign = "center";
+    cx.fillText("Я и текст могу рисовать!", 175, 50);
+    cx.strokeRect(0, 0, 350, 100);
+</script>
+-->
+<!--
+<canvas></canvas>
+<script>
+    var cx = document.querySelector("canvas").getContext("2d");
+    var img = document.createElement("img");
+    img.src = "http://eloquentjavascript.net/img/hat.png";
+    img.addEventListener("load", function () {
+        for (var x = 10; x < 200; x += 30)
+            cx.drawImage(img, x, 10);
+    });
+</script>
+-->
+<!--
+<canvas></canvas>
+<script>
+    var cx = document.querySelector("canvas").getContext("2d");
+    var img = document.createElement("img");
+    img.src = "http://eloquentjavascript.net/img/player.png";
+    var spriteW = 24, spriteH = 30;
+    img.addEventListener("load", function () {
+        var cycle = 0;
+        setInterval(function () {
+            cx.clearRect(0, 0, spriteW, spriteH);
+            cx.drawImage(img,
+            // source rectangle
+            cycle * spriteW, 0, spriteW, spriteH,
+            //destination rectangle
+            0, 0, spriteW, spriteH);
+            cycle = (cycle + 1) % 8;
+        }, 120);
+    });
+</script>
+-->
+<!--
+<canvas></canvas>
+<script>
+    var cx = document.querySelector("canvas").getContext("2d");
+    cx.scale(3, 1.0);
+    cx.beginPath();
+    cx.arc(50, 50, 40, 0, 7);
+    cx.lineWidth = 3;
+    cx.stroke();
+</script>
+-->
+<!--
+<canvas></canvas>
+<script>
+    function flipHorizontally(context, around) {
+        context.translate(around, 0);
+        context.scale(-1, 1);
+        context.translate(-around, 0);
+    }
+    var cx = document.querySelector("canvas").getContext("2d");
+    var img = document.createElement("img");
+    img.src = "http://eloquentjavascript.net/img/player.png";
+    var spriteW = 24, spriteH = 30;
+    img.addEventListener("load", function () {
+
+        var cycle = 0;
+        setInterval(function () {
+            cx.clearRect(0, 0, spriteW, spriteH);
+            cx.drawImage(img,
+                // source rectangle
+                cycle * spriteW, 0, spriteW, spriteH,
+                //destination rectangle
+                0, 0, spriteW, spriteH);
+            cycle = (cycle + 1) % 8;
+        }, 120);
+        flipHorizontally(cx, spriteW / 2);
+
+    });
+</script>
+-->
+<!--
+<canvas width="600" height="300"></canvas>
+<script>
+    var cx = document.querySelector("canvas").getContext("2d");
+    function branch(length, angle, scale) {
+        cx.fillRect(0, 0, 1, length);
+        if (length < 8) return;
+        cx.save();
+        cx.translate(0, length);
+        cx.rotate(-angle);
+        branch(length * scale, angle, scale);
+        cx.rotate(2 * angle);
+        branch(length * scale, angle, scale);
+        cx.restore();
+    }
+    cx.translate(300, 0);
+    branch(60, 0.5, 0.8);
+</script>
+-->
+</body>
+</html>

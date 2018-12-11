@@ -1,0 +1,109 @@
+.background {
+    background: rgb(52, 166, 251);
+    table-layout: fixed;
+    border-spacing: 0;
+}
+.background td {
+    padding: 0;
+}
+.lava {
+    background: rgb(255, 100, 100);
+}
+.wall {
+    background: white;}
+.actor {
+    position: absolute;
+}
+.coin {
+    background: rgb(241, 229, 89);
+}
+.player {
+    background: rgb(64,64,64);
+}
+.lost .player {
+    background: rgb(160, 64, 64);
+}
+.won .player {
+    box-shadow: -4px -7px 8px white, 4px -7px 8px white;
+}
+.game {
+    overflow: hidden;
+    max-width: 600px;
+    max-height: 450px;
+    position: relative;
+}
+
+/* Базовые стили */
+.heart {
+    position: absolute;
+    width: 10px;
+    height: 15px;
+    background-color: red;
+    box-shadow: -1px 0px 2px #444;
+    /* Скругляем верхние углы */
+    -webkit-border-radius: 50px 50px 0 0;
+    -moz-border-radius: 50px 50px 0 0;
+    border-radius: 50px 50px 0 0;
+    /* Определяем угол наклона */
+    -webkit-transform: rotate(315deg);
+    -moz-transform: rotate(315deg);
+    -ms-transform: rotate(315deg);
+    -o-transform: rotate(315deg);
+    transform: rotate(315deg);
+}
+/* Формируем правую часть */
+.heart:before {
+    position: absolute;
+    width: 15px;
+    height: 10px;
+    left: 0;
+    bottom: 0;
+    content: "";
+    background-color: red;
+    box-shadow: 0px 3px 3px #444444;
+    -webkit-border-radius: 50px 50px 0 0;
+    -moz-border-radius: 50px 50px 0 0;
+    border-radius: 0 50px 50px 0;
+}
+/* Убираем тень при наведении */
+.heart:hover:before, .heart:hover{
+    box-shadow:none;
+}
+.pause {
+    position: absolute;
+    background: rgba(255, 222, 173, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.text {
+    color: red;
+    text-align: center;
+    font-size: 40px;
+    margin: 0 auto;
+
+}
+.windowStart {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: deepskyblue;
+}
+.textWelcome {
+    width: 100%;
+    text-align: center;
+    font-size: 30px;
+}
+.windowWelcome {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+
+}
+.buttonStart {
+    background-color: navajowhite;
+    align-self: center;
+    font-size: 20px;
+    text-align: center;
+}
