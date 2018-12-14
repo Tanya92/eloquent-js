@@ -1,5 +1,5 @@
 /**
- * Created by dmitrii on 7.9.18.
+ * Created by dmitrii on 777777.9.18.
  */
 const file_ancestry = require("./ancestry.js");
 function filter(array,test) {

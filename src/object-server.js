@@ -31,10 +31,10 @@ deleteFile.addEventListener("click", function (event) {
     event.preventDefault();
     var fileName = "/" + fileName_Directory.value;
     (new Api(fileName)).asDelete().send(null)
-        .then(() => (new Notifications(document.body).success("Successfully deleted " + deleteFile.value)))
+        .then(() => (new Notifications(document.body).success("Successfully deleted " + fileName_Directory.value)))
         .then(loadFileList)
         .then(() => {
-            deleteFile.value = "";
+            fileName_Directory.value = "";
         })
         .catch(req => (new Notifications(document.body).error(req.responseText)));
 });
@@ -58,6 +58,7 @@ createDirectory.addEventListener("click", function (event) {
 });
 var fileList = document.querySelector("#fileList");
 
+
 function loadFileList() {
     (new Api("/").asGet().send(null))
         .then(req => {
@@ -65,11 +66,27 @@ function loadFileList() {
           var arrayResult = stringResult.split("\n");
           var fragment = document.createDocumentFragment();
           arrayResult.forEach(function (elem) {
+              var path = "/" + elem;
+              var div = document.createElement("div");
+              div.id = "link_div";
               var link = document.createElement("a");
-              fragment.appendChild(link);
-              link.setAttribute("href", "/" + elem);
-              link.setAttribute("target", "_blank");
+              var new_window = document.createElement("a");
+              var external_link = document.createElement("i");
+              new_window.appendChild(external_link);
+              div.appendChild(link)
+              div.appendChild(new_window);
+              external_link.className = "fa fa-external-link";
+              external_link.style.color = "black";
+              new_window.setAttribute("href", path);
+              new_window.setAttribute("target", "_blank");
+              fragment.appendChild(div);
+
+              link.setAttribute("href", path);
               link.innerText = elem;
+              link.addEventListener("click", function (event) {
+                  event.preventDefault();
+                  loadFile(elem);
+              });
           })
             fileList.innerHTML = "";
             fileList.appendChild(fragment);
@@ -78,3 +95,18 @@ function loadFileList() {
 }
 
 loadFileList();
+
+function loadFile(path) {
+    (new Api("/" + path).asGet().send(null))
+        .then(req => {
+            fileName_Directory.value = path;
+            fileContent.value = req.responseText;
+        });
+}
+
+var clear = document.querySelector("#clear");
+clear.addEventListener("click", function (event) {
+    event.preventDefault();
+    fileName_Directory.value = "";
+    fileContent.value = "";
+})
