@@ -5,7 +5,7 @@
 var http = require("http");
 var Router = require("./router");
 var ecstatic = require("ecstatic");
-
+var fs = require("fs");
 var fileServer = ecstatic({root: "./public"});
 var router = new Router();
 
@@ -23,12 +23,29 @@ function respond(response, status, data, type) {
 }
 
 function respondJSON(response, status, data) {
-    respond(response, status. JSON.stringify(data),
+    respond(response, status, JSON.stringify(data),
         "application/json");
 }
 
 var talks = Object.create(null);
+fs.stat("./talks.json", function (error) {
+    if (error && error.code == "ENOENT") {
+        fs.writeFile("./talks.json",JSON.stringify({}));
+    } else if (!error) {
+        readStreamAsJson(
+            fs.createReadStream("./talks.json"),
+            function (error, result) {
+                if (!error) {
+                    talks = result;
+                }
+            }
+        )
+    }
 
+});
+function writeChangesToFile(talks) {
+    fs.writeFile("./talks.json", JSON.stringify(talks));
+}
 router.add("GET", /^\/talks\/([^\/]+)$/,
                 function (request, response, title) {
                     if (title in talks) {
@@ -42,6 +59,7 @@ router.add("DELETE", /^\/talks\/([^\/]+)$/,
                 function (request, response, title) {
                     if (title in talks) {
                         delete talks[title];
+                        writeChangesToFile(talks);
                         registerChange(title);
                     }
                     respond(response, 204, null);
@@ -76,6 +94,7 @@ router.add("PUT", /^\/talks\/([^\/]+)$/,
                             summary: talk.summary,
                             comments: []};
             registerChange(title);
+            writeChangesToFile(talks);
             respond(response, 204, null);
         }
     });
@@ -91,6 +110,7 @@ router.add("POST", /^\/talks\/([^\/]+)\/comments$/,
         } else if (title in talks) {
             talks[title].comments.push(comment);
             registerChange(title);
+            writeChangesToFile(talks);
             respond(response, 204, null);
         } else {
             respond(response, 404, "No talk '" + title + "' found");
@@ -107,13 +127,13 @@ function sendTalks(talks, response) {
 
 router.add("GET", /^\/talks$/, function (request, response) {
     var query = require("url").parse(request.url, true).query;
-    if (query.changeSince == null) {
+    if (query.changesSince == null) {
         var list = [];
         for (var title in talks)
             list.push(talks[title]);
         sendTalks(list, response);
     } else {
-        var since = Number(query.changeSince);
+        var since = Number(query.changesSince);
         if (isNaN(since)) {
             respond(response, 400, "Invalid parameter");
         } else {
@@ -122,7 +142,7 @@ router.add("GET", /^\/talks$/, function (request, response) {
             {
                 sendTalks(changed, response);
             }else {
-                waitForChanges(since, responce);
+                waitForChanges(since, response);
             }
         }
     }
@@ -131,7 +151,7 @@ router.add("GET", /^\/talks$/, function (request, response) {
 var waiting = [];
 
 function waitForChanges(since, response) {
-    var waiter = {since: since, responce: responce};
+    var waiter = {since: since, response: response};
     waiting.push(waiter);
      setTimeout(function () {
          var found = waiting.indexOf(waiter);
@@ -172,142 +192,3 @@ function getChangedTalks(since) {
     }
     return found;
 }
-
-function request(options, callback) {
-    var req = new XMLHttpRequest();
-    req.open(options.method || "GET", options.pathname, true);
-    req.addEventListener("load", function () {
-        if (req.status < 400) {
-            callback(null, req.responseText);
-        } else {
-            callback(new Error("Request failed: " + req.statusText));
-        }
-    });
-    req.addEventListener("error", function () {
-        callback(new Error("NetWork error"));
-    });
-    req.send(options.body || null);
-}
-
-var lastServerTime = 0;
-
-request({pathname: "talks"}, function (error, response) {
-    if (error) {
-        reportError(error);
-    } else {
-        response = JSON.parse(response);
-        displayTalks(response.talks);
-        lasrServerTime = response.serverTime;
-        waitForChanges();
-    }
-});
-
-function reportError(error) {
-    if (error)
-        alert(error.toString());
-}
-
-var talkDiv = document.querySelector("#talks");
-var shownTalks = Object.create(null);
-
-function displayTalks(talks) {
-    talks.forEach(function (talk) {
-        var shown = shownTalks[talk.title];
-        if (talk.deleted) {
-            if (shown) {
-                talkDiv.removeChild(shown);
-                delete shownTalks[talk.title];
-            }
-        } else {
-            var node = drawTalk(talk);
-            if (shown){
-                talkDiv.replaceChild(node, shown);
-            } else {
-                talkDiv.appendChild(node);
-            }
-            shownTalks[talk.title] = node;
-        }
-    });
-}
-
-function  instantiateTemplate(name, values) {
-    function instantiateText(text) {
-        return text.replace(/\{\{(\w+)\}\}/g, function (_, name) {
-            return values[name];
-        });
-    }
-    function instantiate(node) {
-        if (node.nodeType == document.ELEMENT_NODE) {
-            var copy = node.cloneNode();
-            for (var i = 0; i < node.childNodes.length; i++) {
-                copy.appendChild(instantiate(node.childNodes[i]));
-            }
-            return copy;
-        } else if (node.nodeType == document.TEXT_NODE) {
-            return document.createTextNode(instantiateText(node.nodeValue));
-        }
-    }
-
-    var template = document.querySelector("#template ." + name);
-    return instantiate(template);
-}
-
-function drawTalk(talk) {
-    var node = instantiateTemplate("talk", talk);
-    var comments = node.querySelector(".comments");
-    talk.comments.forEach(function (comment) {
-        comments.appendChild(instantiateTemplate("comment", comment));
-    });
-
-    node.querySelector("button.del").addEventListener("click", deleteTalk.bind(null, talk.title));
-    var form = node.querySelector("form");
-    form.addEventListener("submit",  function (event) {
-        event.preventDefault();
-        addComment(talk.title, form.elements.comment.value);
-        form.reset();
-    });
-    return node;
-}
-
-function talkURL(title) {
-    return "talks/" + encodeURIComponent(title);
-}
-
-function deleteTalk(title) {
-    request({pathname: talkURL(title), method: "DELETE"}, reportError);
-}
-
-function addComment(title, comment) {
-    var comment = {author: nameField.value, message: comment};
-    request({pathname: talkURL(title) + "/comments", body: JSON.stringify(comment), method: "POST"}, reportError);
-}
-
-var nameField = document.querySelector("#name");
-
-nameField.value = localStorage.getItem("name") || "";
-
-nameField.addEventListener("change", function () {
-    localStorage.setItem("name", nameField.value);
-});
-
-var talkForm = document.querySelector("#newtalk");
-talkForm.addEventListener("submit", function (event) {
-    event.preventDefault();
-    request({pathname: talkURL(talkForm.elements.title.value), method: "PUT", body: JSON.stringify({presenter: nameField.value, summary: talkForm.elements.summary.value})}, reportError);
-    talkForm.reset();
-});
-
-function waitForChanges() {
-    request({pathname: "talks?changesSince=" + lastServerTime}, function (error, response) {
-        if (error) {
-            setTimeout(waitForChanges, 2500);
-            console.error(error.stack);
-        } else {
-            response = JSON.parse(response);
-            displayTalks(response.talks);
-            lastServerTime = response.serverTime;
-            waitForChanges();
-        }
-    });
-}
-

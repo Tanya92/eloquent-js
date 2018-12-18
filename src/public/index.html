@@ -18,22 +18,22 @@
     <button type="submit">Send</button>
 </form>
 <div id="template" style="display: none">
-    <div>
+    <div class="talk">
         <h2>{{title}}</h2>
         <div>by <span>{{presenter}}</span></div>
         <p>{{summary}}</p>
-        <div></div>
+        <div class="comments"></div>
         <form>
             <input type="text" name="comment">
             <button type="submit">Add comment</button>
-            <button type="button"> Delete talk</button>
+            <button type="button" class="del"> Delete talk</button>
         </form>
     </div>
-    <div>
+    <div class="comment">
         <span>{{author}}</span>: {{message}}
     </div>
 </div>
 
-<script src="skillsharing_clien.js"></script>
+<script src="skillsharing_client.js"></script>
 </body>
 </html>
