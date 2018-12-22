@@ -112,7 +112,7 @@ router.add("GET",/^\/index\.html$/, function (request, response) {
                             <i class="fa fa-star-o" aria-hidden="true"></i>
                         </span>
                         <span>{{author}}</span>: {{message}}
-                        <button class="deleteComment">Delete Comment</button>
+                        <button class="deleteComment" data-author="{{author}}" data-message="{{message}}">Delete Comment</button>
                     </div>
                 </div>
                 <form>
@@ -271,7 +271,28 @@ router.add("POST", /^\/talks\/([^\/]+)\/comments$/,
         }
     });
 });
-
+router.add("DELETE", /^\/talks\/([^\/]+)\/comments$/, function (request, response, title) {
+    readStreamAsJson(request, function (error, comment) {
+        if (error) {
+            respond(response, 400, error.toString());
+        } else if (!comment || typeof comment.author != "string" || typeof comment.message != "string"){
+        respond(response, 400, "Bad comment data");
+        } else if (title in talks) {
+            var position = talks[title]["comments"].findIndex(function (elem) {
+                if (elem.author == comment.author && elem.message == comment.message) {
+                    return true;
+                }
+                return false;
+            });
+            talks[title]["comments"].splice(position,1);
+            registerChange(title);
+            writeChangesToFile(talks);
+            respond(response, 204, null);
+        } else {
+            respond(response, 404, "No talk '" + title + "' found");
+        }
+    })
+})
 function sendTalks(talks, response) {
     respondJSON(response, 200, {
         serverTime: Date.now(),

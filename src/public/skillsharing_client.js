@@ -95,6 +95,12 @@ function  instantiateTemplate(name, values) {
         }
         if (node.nodeType == document.ELEMENT_NODE) {
             var copy = node.cloneNode();
+            if (copy.hasAttributes()){
+                var attrs = copy.attributes;
+                for(var i = attrs.length - 1; i >= 0; i--) {
+                   attrs[i].value = instantiateText(attrs[i].value, values);
+                }
+            }
             for (var i = 0; i < node.childNodes.length; i++) {
                 copy.appendChild(instantiate(node.childNodes[i],values));
             }
@@ -112,6 +118,12 @@ function  instantiateTemplate(name, values) {
 function drawTalk(talk) {
     var node = instantiateTemplate("talk", talk);
     node.querySelector("button.del").addEventListener("click", deleteTalk.bind(null, talk.title));
+    var arrayButtons = node.querySelectorAll("button.deleteComment")
+        for (let i = 0; i < arrayButtons.length; i++) {
+            arrayButtons[i].addEventListener("click", function (event) {
+                deleteComment(talk.title, event.target.getAttribute("data-author"), event.target.getAttribute("data-message"));
+            });
+        }
     var form = node.querySelector("form");
     form.addEventListener("submit",  function (event) {
         event.preventDefault();
@@ -133,7 +145,10 @@ function addComment(title, comment) {
     var comment = {author: nameField.value, message: comment};
     request({pathname: talkURL(title) + "/comments", body: JSON.stringify(comment), method: "POST"}, reportError);
 }
-
+function deleteComment(title,author,comment) {
+    var comment = {author: author, message: comment};
+    request({pathname:talkURL(title) + "/comments", body: JSON.stringify(comment), method: "DELETE"}, reportError);
+}
 var nameField = document.querySelector("#name");
 
 nameField.value = localStorage.getItem("name") || "";
