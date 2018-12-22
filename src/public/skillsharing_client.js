@@ -25,6 +25,7 @@ request({pathname: "talks"}, function (error, response) {
         reportError(error);
     } else {
         response = JSON.parse(response);
+        talkDiv.innerHTML = "";
         displayTalks(response.talks);
         lastServerTime = response.serverTime;
         waitForChanges();
@@ -50,45 +51,66 @@ function displayTalks(talks) {
         } else {
             var node = drawTalk(talk);
             if (shown){
-                talkDiv.replaceChild(node, shown);
+                var comments = node.querySelector(".comments");
+                var shownComments = shown.querySelector(".comments");
+                shown.replaceChild(comments, shownComments);
             } else {
                 talkDiv.appendChild(node);
+                shownTalks[talk.title] = node;
             }
-            shownTalks[talk.title] = node;
+
         }
     });
 }
 
 function  instantiateTemplate(name, values) {
-    function instantiateText(text) {
+    function instantiateText(text, values) {
         return text.replace(/\{\{(\w+)\}\}/g, function (_, name) {
             return values[name];
         });
     }
-    function instantiate(node) {
+    function instantiate(node,values) {
+        if (node.nodeType == document.ELEMENT_NODE && node.hasAttribute("template-if")) {
+            var conditionBody = "return " + node.getAttribute("template-if") + ";";
+            var bindArguments = [Function].concat(Object.keys(values)).concat(conditionBody);
+            var boundedFunc = (Function.prototype.bind.apply(Function, bindArguments));
+            var functionCondition = new boundedFunc;
+            if (functionCondition.apply(null, Object.values(values))) {
+                var copy = node.cloneNode(true);
+                copy.removeAttribute("template-if");
+                return instantiate(copy, values);
+            } else {
+                return document.createComment("");
+            }
+        }
+        if (node.nodeType == document.ELEMENT_NODE && node.hasAttribute("template-repeat")) {
+            var array = node.getAttribute("template-repeat");
+            var fragment = document.createDocumentFragment();
+            for (var i = 0; i < values[array].length; i++) {
+               var copy = node.cloneNode(true);
+               copy.removeAttribute("template-repeat");
+               fragment.appendChild(instantiate(copy,values[array][i]));
+            }
+            return fragment;
+        }
         if (node.nodeType == document.ELEMENT_NODE) {
             var copy = node.cloneNode();
             for (var i = 0; i < node.childNodes.length; i++) {
-                copy.appendChild(instantiate(node.childNodes[i]));
+                copy.appendChild(instantiate(node.childNodes[i],values));
             }
             return copy;
         } else if (node.nodeType == document.TEXT_NODE) {
-            return document.createTextNode(instantiateText(node.nodeValue));
+            return document.createTextNode(instantiateText(node.nodeValue, values));
         }
+
     }
 
     var template = document.querySelector("#template ." + name);
-    console.log(name, values, template);
-    return instantiate(template);
+    return instantiate(template, values);
 }
 
 function drawTalk(talk) {
     var node = instantiateTemplate("talk", talk);
-    var comments = node.querySelector(".comments");
-    talk.comments.forEach(function (comment) {
-        comments.appendChild(instantiateTemplate("comment", comment));
-    });
-
     node.querySelector("button.del").addEventListener("click", deleteTalk.bind(null, talk.title));
     var form = node.querySelector("form");
     form.addEventListener("submit",  function (event) {
@@ -124,7 +146,8 @@ var talkForm = document.querySelector("#newtalk");
 talkForm.addEventListener("submit", function (event) {
     event.preventDefault();
     request({pathname: talkURL(talkForm.elements.title.value), method: "PUT", body: JSON.stringify({presenter: nameField.value, summary: talkForm.elements.summary.value})}, reportError);
-    talkForm.reset();
+    talkForm.elements.title.value = "";
+    talkForm.elements.summary.value = "";
 });
 
 function waitForChanges() {

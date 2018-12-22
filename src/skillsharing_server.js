@@ -8,6 +8,36 @@ var ecstatic = require("ecstatic");
 var fs = require("fs");
 var fileServer = ecstatic({root: "./public"});
 var router = new Router();
+var Handlebars = require("handlebars");
+var qs = require("querystring");
+
+Handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
+
+    switch (operator) {
+        case '==':
+            return (v1 == v2) ? options.fn(this) : options.inverse(this);
+        case '===':
+            return (v1 === v2) ? options.fn(this) : options.inverse(this);
+        case '!=':
+            return (v1 != v2) ? options.fn(this) : options.inverse(this);
+        case '!==':
+            return (v1 !== v2) ? options.fn(this) : options.inverse(this);
+        case '<':
+            return (v1 < v2) ? options.fn(this) : options.inverse(this);
+        case '<=':
+            return (v1 <= v2) ? options.fn(this) : options.inverse(this);
+        case '>':
+            return (v1 > v2) ? options.fn(this) : options.inverse(this);
+        case '>=':
+            return (v1 >= v2) ? options.fn(this) : options.inverse(this);
+        case '&&':
+            return (v1 && v2) ? options.fn(this) : options.inverse(this);
+        case '||':
+            return (v1 || v2) ? options.fn(this) : options.inverse(this);
+        default:
+            return options.inverse(this);
+    }
+});
 
 http.createServer(function (request, response) {
     if (!router.resolve(request, response)) {
@@ -15,10 +45,15 @@ http.createServer(function (request, response) {
     }
 }).listen(8000);
 
-function respond(response, status, data, type) {
-    response.writeHead(status, {
-        "Content-Type": type || "text/plain"
-    });
+function respond(response, status, data, type, headers) {
+    if (headers) {
+        headers["Content-Type"] = type || "text/plain";
+    } else {
+        headers = {
+            "Content-Type": type || "text/plain"
+        }
+    }
+    response.writeHead(status,headers);
     response.end(data);
 }
 
@@ -64,7 +99,126 @@ router.add("DELETE", /^\/talks\/([^\/]+)$/,
                     }
                     respond(response, 204, null);
                 });
+router.add("GET",/^\/index\.html$/, function (request, response) {
+    var client_template = `
+        <div id="template" style="display: none">
+            <div class="talk">
+                <h2>{{title}}</h2>
+                <div>by <span>{{presenter}}</span></div>
+                <p>{{summary}}</p>
+                <div class="comments">
+                    <div template-repeat="comments">
+                        <span template-if="author == 'Tanya'">
+                            <i class="fa fa-star-o" aria-hidden="true"></i>
+                        </span>
+                        <span>{{author}}</span>: {{message}}
+                        <button class="deleteComment">Delete Comment</button>
+                    </div>
+                </div>
+                <form>
+                    <input type="text" name="comment">
+                    <button type="submit">Add comment</button>
+                    <button type="button" class="del"> Delete talk</button>
+                </form>
+            </div>
+        </div>
+    `;
+    fs.readFile("./public/index.html", "utf8", function (error, source) {
+        if (error) {
+            respond(response, 500, error.toString());
+        } else {
+            var talksArray = [];
+            for (let title in talks) {
+                var talk = talks[title];
+                talk["title"] = title;
+                talksArray.push(talk);
+            }
+            var context = {
+                client_template: client_template,
+                talks: talksArray
+            };
+            var template = Handlebars.compile(source);
+            var html = template(context);
+            respond(response, 200, html,"text/html");
+        }
+    });
+});
 
+router.add("POST", /^\/talks$/, function (request, response) {
+    readStreamAsObject(request,function (error, talk) {
+        if (error) {
+            respond(response, 400, error.toString());
+        } else {
+            talks[talk.title] = {title: talk.title,
+                            presenter: talk.presenter,
+                            summary: talk.summary,
+                            comments: []};
+            writeChangesToFile(talks);
+            respond(response, 303,null,null,{Location: "/index.html"});
+        }
+    })
+});
+router.add("POST",/^\/talks\/delete$/,function (request, response) {
+    readStreamAsObject(request, function (error, talk) {
+        if (error) {
+            respond(response, 400, error.toString());
+        } else {
+            delete talks[talk.title];
+            writeChangesToFile(talks);
+            respond(response, 303, null, null, {Location:"/index.html"});
+        }
+    })
+});
+router.add("POST", /^\/talks\/comments$/, function (request, response) {
+    readStreamAsObject(request, function (error, talk) {
+        if (error) {
+            respond(response, 400, error.toString());
+        } else {
+            if (!talks[talk.title]["comments"]) {
+                talks[talk.title]["comments"] = [];
+            }
+            talks[talk.title]["comments"].push({
+                author: talk.author,
+                message: talk.comment
+            });
+            writeChangesToFile(talks);
+            respond(response, 303, null, null, {Location:"/index.html"});
+        }
+    })
+});
+router.add("POST", /^\/talks\/deletecomments$/, function (request, response) {
+    readStreamAsObject(request, function (error, talk) {
+        if (error) {
+            respond(response, 400, error.toString());
+        } else {
+            var position = talks[talk.title]["comments"].findIndex(function (elem) {
+                if (elem.author == talk.author && elem.message == talk.comment) {
+                    return true;
+                }
+                return false;
+            });
+            talks[talk.title]["comments"].splice(position,1);
+            writeChangesToFile(talks);
+            respond(response, 303, null, null, {Location:"/index.html"});
+        }
+    })
+});
+function readStreamAsObject(stream, callback) {
+    var data = "";
+    stream.on("data", function (chunk) {
+        data += chunk;
+    });
+    stream.on("end", function () {
+        var result = {}, error;
+        try {
+            result = qs.parse(data);
+        } catch (e) {error = e;}
+        callback(error, result);
+    });
+    stream.on("error", function (error) {
+        callback(error);
+    })
+}
 function readStreamAsJson(stream, callback) {
     var data = "";
     stream.on("data", function (chunk) {
